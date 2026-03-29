@@ -1,65 +1,108 @@
-import Image from "next/image";
+"use client";
+
+import { useState } from "react";
+import { analyzeResumeAction } from "./actions/analyze";
+import { Upload, Cpu, CheckCircle, RefreshCcw } from "lucide-react"; // Added Refresh icon
+import AnalysisResults from "@/components/features/AnalysisResults"; // Import your component
 
 export default function Home() {
+  const [result, setResult] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+
+  async function handleUpload(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setLoading(true);
+    const formData = new FormData(e.currentTarget);
+    const data = await analyzeResumeAction(formData);
+    setResult(data);
+    setLoading(false);
+  }
+
+  // Helper to reset for a "New Analysis"
+  const resetAnalysis = () => setResult(null);
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    <main className="min-h-screen bg-[#0f0a1f] text-white p-8 font-sans">
+      <div className="max-w-4xl mx-auto">
+        <header className="mb-12 text-center relative">
+          {/* Badge from your screenshot */}
+          <div className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-violet-500/10 border border-violet-500/20 text-[10px] text-violet-300 mb-4">
+            <Cpu size={12} /> 2026 AI Engine Enabled
+          </div>
+
+          <h1 className="text-5xl font-extrabold bg-gradient-to-r from-violet-400 to-fuchsia-300 bg-clip-text text-transparent">
+            AI Career Copilot
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+          <p className="text-gray-400 mt-3 text-lg">
+            Bridge the gap between your resume and your dream internship.
           </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+
+          {/* New Analysis Button (Visible only when result exists) */}
+          {result && (
+            <button
+              onClick={resetAnalysis}
+              className="mt-6 flex items-center gap-2 mx-auto px-4 py-2 bg-[#1a142e] border border-violet-500/30 rounded-full text-sm text-violet-300 hover:bg-violet-500/10 transition-all"
+            >
+              <RefreshCcw size={16} /> New Analysis
+            </button>
+          )}
+        </header>
+
+        {/* Show Form only if no result, or show Results if they exist */}
+        {!result ? (
+          <form
+            onSubmit={handleUpload}
+            className="space-y-6 bg-[#1a142e] p-8 rounded-3xl border border-violet-500/20 shadow-2xl"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+            <div>
+              <label className="block text-sm font-medium text-violet-300 mb-3">
+                Upload Resume (PDF)
+              </label>
+              <div className="relative group">
+                <input
+                  type="file"
+                  name="resume"
+                  accept=".pdf"
+                  required
+                  className="w-full text-sm text-gray-400 file:mr-4 file:py-3 file:px-6 file:rounded-xl file:border-0 file:text-sm file:font-bold file:bg-violet-600 file:text-white hover:file:bg-violet-500 cursor-pointer bg-[#0f0a1f] border border-violet-500/20 rounded-xl"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-violet-300 mb-3">
+                Target Job Description
+              </label>
+              <textarea
+                name="jd"
+                rows={6}
+                required
+                className="w-full bg-[#0f0a1f] border border-violet-500/20 rounded-2xl p-5 focus:ring-2 focus:ring-violet-500 focus:outline-none placeholder:text-gray-700 transition-all"
+                placeholder="Paste the internship description here to find skill gaps..."
+              />
+            </div>
+
+            <button
+              disabled={loading}
+              className="w-full py-5 bg-gradient-to-r from-violet-600 to-fuchsia-600 rounded-2xl font-bold text-lg hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-3 shadow-lg shadow-violet-500/20"
+            >
+              {loading ? (
+                <span className="flex items-center gap-2">
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Analyzing Alignment...
+                </span>
+              ) : (
+                <>
+                  <Cpu size={22} /> Analyze Alignment
+                </>
+              )}
+            </button>
+          </form>
+        ) : (
+          /* THIS IS THE SECOND PAGE YOU WANTED BACK */
+          <AnalysisResults data={result} />
+        )}
+      </div>
+    </main>
   );
 }
