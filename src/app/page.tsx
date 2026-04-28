@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { analyzeResumeAction } from "./actions/analyze";
-import { Upload, Cpu, CheckCircle, RefreshCcw } from "lucide-react"; // Added Refresh icon
-import AnalysisResults from "@/components/features/AnalysisResults"; // Import your component
+import {  Cpu, RefreshCcw } from "lucide-react"; 
+import AnalysisResults from "@/components/features/AnalysisResults"; 
 
 export default function Home() {
   const [result, setResult] = useState<any>(null);
@@ -99,7 +99,7 @@ export default function Home() {
             </button>
           </form>
         ) : (
-          /* THIS IS THE SECOND PAGE YOU WANTED BACK */
+         
           <AnalysisResults data={result} />
         )}
       </div>

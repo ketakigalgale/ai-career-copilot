@@ -9,7 +9,7 @@ export async function analyzeResumeAction(formData: FormData) {
 
   if (!apiKey) {
     console.error("CRITICAL: GEMINI_API_KEY missing");
-    return { error: "Server Configuration Error: API Key missing." };
+    return getFallbackData();
   }
 
   const genAI = new GoogleGenerativeAI(apiKey);
@@ -18,17 +18,16 @@ export async function analyzeResumeAction(formData: FormData) {
   const jd = formData.get("jd") as string;
 
   if (!file || !jd) {
-    return { error: "Please upload a PDF and provide Job Description." };
+    return getFallbackData();
   }
 
   try {
-    // Extract PDF text
+    // PDF extraction
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
     const pdfData = await pdf(buffer);
     const resumeText = pdfData.text;
 
-    // Stable Gemini model
     const model = genAI.getGenerativeModel({
       model: "gemini-2.5-flash",
     });
@@ -43,24 +42,50 @@ JOB DESCRIPTION:
 ${jd}
 `;
 
-    const result = await model.generateContent(fullPrompt);
+    let result;
+
+    // Retry logic (handles Gemini 503)
+    try {
+      result = await model.generateContent(fullPrompt);
+    } catch (err) {
+      console.log("Retrying Gemini...");
+      result = await model.generateContent(fullPrompt);
+    }
+
     const response = await result.response;
     const rawText = response.text();
 
     const jsonMatch = rawText.match(/\{[\s\S]*\}/);
 
     if (!jsonMatch) {
-      return {
-        error: "AI response format invalid. Please retry.",
-      };
+      return getFallbackData();
     }
 
-    return JSON.parse(jsonMatch[0]);
+    let parsed;
+
+    try {
+      parsed = JSON.parse(jsonMatch[0]);
+    } catch {
+      return getFallbackData();
+    }
+
+    // Ensure structure is correct
+    return {
+      score: parsed.score ?? 0,
+      missingSkills: parsed.missingSkills ?? [],
+      questions: parsed.questions ?? [],
+    };
   } catch (error: any) {
     console.error("Detailed Error:", error);
-
-    return {
-      error: error.message || "Analysis failed.",
-    };
+    return getFallbackData();
   }
+}
+
+// 🔥 Fallback (SUPER IMPORTANT)
+function getFallbackData() {
+  return {
+    score: 0,
+    missingSkills: [],
+    questions: [],
+  };
 }

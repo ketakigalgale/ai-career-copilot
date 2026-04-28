@@ -1,20 +1,21 @@
-import { AlertCircle, BookOpen, BrainCircuit, Target } from "lucide-react";
+import { AlertCircle, BrainCircuit, Target } from "lucide-react";
 
 interface ResultsProps {
-  data: {
-    score: number;
-
-    missingSkills: string[];
-
-    questions: string[];
+  data?: {
+    score?: number;
+    missingSkills?: string[];
+    questions?: string[];
   };
 }
 
 export default function AnalysisResults({ data }: ResultsProps) {
+  const score = data?.score ?? 0;
+  const missingSkills = data?.missingSkills ?? [];
+  const questions = data?.questions ?? [];
+
   return (
     <div className="mt-12 space-y-8 animate-in fade-in slide-in-from-bottom-6 duration-700">
-      {/* 1. Score Circle & Summary */}
-
+      {/* Score Section */}
       <div className="flex flex-col md:flex-row gap-6 items-center bg-[#1a142e] p-8 rounded-3xl border border-violet-500/20">
         <div className="relative flex items-center justify-center">
           <svg className="w-32 h-32 transform -rotate-90">
@@ -27,7 +28,6 @@ export default function AnalysisResults({ data }: ResultsProps) {
               fill="transparent"
               className="text-violet-900/30"
             />
-
             <circle
               cx="64"
               cy="64"
@@ -36,12 +36,12 @@ export default function AnalysisResults({ data }: ResultsProps) {
               strokeWidth="8"
               fill="transparent"
               strokeDasharray={364.4}
-              strokeDashoffset={364.4 - (364.4 * data.score) / 100}
+              strokeDashoffset={364.4 - (364.4 * score) / 100}
               className="text-violet-500 transition-all duration-1000 ease-out"
             />
           </svg>
 
-          <span className="absolute text-3xl font-bold">{data.score}%</span>
+          <span className="absolute text-3xl font-bold">{score}%</span>
         </div>
 
         <div className="text-center md:text-left">
@@ -55,39 +55,47 @@ export default function AnalysisResults({ data }: ResultsProps) {
         </div>
       </div>
 
+      {/* Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* 2. Missing Skills (The Gap) */}
-
+        {/* Missing Skills */}
         <div className="bg-[#1a142e] p-6 rounded-2xl border border-red-500/10">
           <h4 className="text-lg font-semibold mb-4 flex items-center gap-2 text-red-400">
             <AlertCircle size={20} /> Missing Key Skills
           </h4>
 
           <div className="flex flex-wrap gap-2">
-            {data.missingSkills.map((skill) => (
-              <span
-                key={skill}
-                className="px-3 py-1 bg-red-500/10 border border-red-500/20 text-red-300 rounded-full text-sm"
-              >
-                {skill}
-              </span>
-            ))}
+            {missingSkills.length > 0 ? (
+              missingSkills.map((skill) => (
+                <span
+                  key={skill}
+                  className="px-3 py-1 bg-red-500/10 border border-red-500/20 text-red-300 rounded-full text-sm"
+                >
+                  {skill}
+                </span>
+              ))
+            ) : (
+              <p className="text-gray-500 text-sm">No missing skills found</p>
+            )}
           </div>
         </div>
 
-        {/* 3. Personalized Questions (The Twist) */}
-
+        {/* Questions */}
         <div className="bg-[#1a142e] p-6 rounded-2xl border border-blue-500/10">
           <h4 className="text-lg font-semibold mb-4 flex items-center gap-2 text-blue-400">
             <BrainCircuit size={20} /> Practice Questions
           </h4>
 
           <ul className="space-y-3 text-sm text-gray-300">
-            {data.questions.map((q, i) => (
-              <li key={i} className="flex gap-2">
-                <span className="text-blue-500 font-bold">{i + 1}.</span> {q}
-              </li>
-            ))}
+            {questions.length > 0 ? (
+              questions.map((q, i) => (
+                <li key={i} className="flex gap-2">
+                  <span className="text-blue-500 font-bold">{i + 1}.</span>
+                  {q}
+                </li>
+              ))
+            ) : (
+              <p className="text-gray-500 text-sm">No questions generated</p>
+            )}
           </ul>
         </div>
       </div>
